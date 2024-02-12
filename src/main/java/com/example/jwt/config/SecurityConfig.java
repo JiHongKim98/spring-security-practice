@@ -24,7 +24,6 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
 		http
 			// csrf 설정 (OFF)
 			.csrf(AbstractHttpConfigurer::disable)
@@ -34,9 +33,7 @@ public class SecurityConfig {
 
 			// 접근 권한 설정
 			.authorizeHttpRequests(auth ->
-				auth
-					.requestMatchers("/api/v1/health/**").permitAll()
-					.anyRequest().authenticated()
+				auth.anyRequest().permitAll()
 			)
 
 			// session 정보: (STATELESS)

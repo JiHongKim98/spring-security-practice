@@ -1,3 +1,8 @@
 spring:
   profiles:
     active: local
+
+jwt:
+  secret-key: ${SECRET}
+  access:
+    exp: 86400000  # 1일
