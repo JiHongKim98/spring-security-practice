@@ -9,6 +9,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.example.jwt.jwt.CustomUserDetailService;
+import com.example.jwt.jwt.JwtAuthenticationFilter;
+import com.example.jwt.jwt.JwtProvider;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,6 +21,10 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+	private final JwtProvider jwtProvider;
+
+	private final CustomUserDetailService userDetailService;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -43,6 +52,10 @@ public class SecurityConfig {
 
 			// Form 로그인 방식 사용 x (JWT 사용)
 			.formLogin(AbstractHttpConfigurer::disable);
+
+		// JWT 필터 등록 (request 시 filter 를 먼저 거쳐 인증 정보 및 권한 확인)
+		http.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, userDetailService),
+			UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
