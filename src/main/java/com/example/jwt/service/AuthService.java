@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.jwt.dto.response.LoginResponseDto;
 import com.example.jwt.entity.Member;
 import com.example.jwt.entity.Role;
 import com.example.jwt.jwt.JwtProvider;
@@ -52,9 +53,8 @@ public class AuthService {
 	/**
 	 * 로그인 Service
 	 * TODO: redis 추가하여 member 캐싱 추가
-	 * TODO: 반환 DTO 추가
 	 */
-	public String login(String username, String password) {
+	public LoginResponseDto login(String username, String password) {
 		Optional<Member> optionalMember = memberRepository.findByUsername(username);
 
 		Member member = optionalMember.orElseThrow(() ->
@@ -66,6 +66,8 @@ public class AuthService {
 			throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
 		}
 
-		return jwtProvider.generateAccessToken(member.getUsername(), member.getRole().name());
+		String accessToken = jwtProvider.generateAccessToken(member.getUsername(), member.getRole().name());
+
+		return LoginResponseDto.from(accessToken);
 	}
 }
