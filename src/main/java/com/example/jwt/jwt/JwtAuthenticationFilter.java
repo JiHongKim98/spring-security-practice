@@ -1,11 +1,13 @@
 package com.example.jwt.jwt;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
@@ -28,33 +30,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(
 		HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 		throws ServletException, IOException {
-		// Authorization 헤더 검증
-		String header = request.getHeader("Authorization");
-		if (header == null || !header.startsWith("Bearer ")) {
-			log.info("토큰 미보유");
-			filterChain.doFilter(request, response);
-			return;
+		Optional<String> optionalToken = getAccessToken(request);
+
+		if (optionalToken.isPresent()) {  // access 토큰 유무 검사
+			String accessToken = optionalToken.get();
+
+			if (jwtProvider.isValidToken(accessToken)) {  // token exp 검사
+				String username = jwtProvider.getUsername(accessToken);
+				UserDetails userDetails = userDetailService.loadUserByUsername(username);
+
+				UsernamePasswordAuthenticationToken authToken =
+					new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+				SecurityContextHolder.getContext().setAuthentication(authToken);
+			}
 		}
-
-		// access token validate
-		String accessToken = header.split(" ")[1];
-		if (!jwtProvider.isValidToken(accessToken)) {
-			log.info("유효하지 않은 토큰");
-			filterChain.doFilter(request, response);
-			return;
-		}
-
-		String username = jwtProvider.getUsername(accessToken);
-		UserDetails userDetails = userDetailService.loadUserByUsername(username);
-
-		// Spring Security 인증 토큰 생성 및 설정
-		UsernamePasswordAuthenticationToken authToken =
-			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-		authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-		// 세션에 인증 토큰 등록
-		SecurityContextHolder.getContext().setAuthentication(authToken);
-
 		filterChain.doFilter(request, response);
+	}
+
+	private Optional<String> getAccessToken(HttpServletRequest request) {
+		String header = request.getHeader("Authorization");
+
+		if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+			return Optional.of(header.substring(7));
+		}
+		return Optional.empty();  // access 토큰 미보유
 	}
 }
