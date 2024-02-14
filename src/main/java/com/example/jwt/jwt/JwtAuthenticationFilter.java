@@ -22,14 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtProvider jwtProvider;
-
 	private final CustomUserDetailService userDetailService;
 
-	// TODO: 예외처리 로직 추가
 	@Override
 	protected void doFilterInternal(
 		HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 		throws ServletException, IOException {
+		log.info("JwtAuthenticationFilter :: Call");
+
 		Optional<String> optionalToken = getAccessToken(request);
 
 		if (optionalToken.isPresent()) {  // access 토큰 유무 검사

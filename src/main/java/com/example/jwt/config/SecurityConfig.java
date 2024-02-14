@@ -12,7 +12,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.example.jwt.jwt.CustomUserDetailService;
+import com.example.jwt.jwt.JwtAccessDeniedHandler;
+import com.example.jwt.jwt.JwtAuthEntryPoint;
 import com.example.jwt.jwt.JwtAuthenticationFilter;
+import com.example.jwt.jwt.JwtExceptionFilter;
 import com.example.jwt.jwt.JwtProvider;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +26,8 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
 	private final JwtProvider jwtProvider;
-
+	private final JwtAuthEntryPoint jwtAuthEntryPoint;
+	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 	private final CustomUserDetailService userDetailService;
 
 	@Bean
@@ -42,7 +46,9 @@ public class SecurityConfig {
 
 			// 접근 권한 설정
 			.authorizeHttpRequests(auth ->
-				auth.anyRequest().permitAll()
+				auth
+					.requestMatchers("/api/v1/members/name").hasAuthority("ADMIN")
+					.anyRequest().permitAll()
 			)
 
 			// session 정보: (STATELESS)
@@ -51,11 +57,19 @@ public class SecurityConfig {
 			)
 
 			// Form 로그인 방식 사용 x (JWT 사용)
-			.formLogin(AbstractHttpConfigurer::disable);
+			.formLogin(AbstractHttpConfigurer::disable)
 
-		// JWT 필터 등록 (request 시 filter 를 먼저 거쳐 인증 정보 및 권한 확인)
-		http.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, userDetailService),
-			UsernamePasswordAuthenticationFilter.class);
+			// JWT 필터 등록 (request 시 filter 를 먼저 거쳐 인증 정보 및 권한 확인)
+			.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, userDetailService),
+				UsernamePasswordAuthenticationFilter.class)
+
+			.addFilterBefore(new JwtExceptionFilter(), JwtAuthenticationFilter.class)
+
+			// security 예외 처리
+			.exceptionHandling(ex -> ex
+				.authenticationEntryPoint(jwtAuthEntryPoint)  // Authentication 예외
+				.accessDeniedHandler(jwtAccessDeniedHandler)  // Authorization 예외
+			);
 
 		return http.build();
 	}
