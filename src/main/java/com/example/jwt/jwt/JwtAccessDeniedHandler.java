@@ -8,8 +8,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
+import com.example.jwt.exception.ErrorCode;
 import com.example.jwt.exception.ErrorResponse;
-import com.example.jwt.exception.JwtErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.ServletException;
@@ -31,7 +31,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 		// Authorization 오류
 		log.info("JwtAccessDeniedHandler :: Call");
 
-		ErrorResponse errorResponse = new ErrorResponse(JwtErrorCode.FORBIDDEN);
+		ErrorResponse errorResponse = new ErrorResponse(ErrorCode.FORBIDDEN);
 
 		response.setStatus(HttpStatus.FORBIDDEN.value());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);

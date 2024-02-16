@@ -8,8 +8,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
+import com.example.jwt.exception.ErrorCode;
 import com.example.jwt.exception.ErrorResponse;
-import com.example.jwt.exception.JwtErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.ServletException;
@@ -31,7 +31,7 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
 		// Authentication 오류
 		log.info("JwtAuthEntryPoint :: Call");
 
-		ErrorResponse errorResponse = new ErrorResponse(JwtErrorCode.UNAUTHORIZED);
+		ErrorResponse errorResponse = new ErrorResponse(ErrorCode.UNAUTHORIZED);
 
 		response.setStatus(HttpStatus.UNAUTHORIZED.value());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);

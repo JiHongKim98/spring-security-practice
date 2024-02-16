@@ -10,7 +10,7 @@ public class ErrorResponse {
 	private String code;
 	private String message;
 
-	public ErrorResponse(JwtErrorCode errorCode) {
+	public ErrorResponse(ErrorCode errorCode) {
 		this.code = errorCode.name();
 		this.message = errorCode.getMessage();
 	}
