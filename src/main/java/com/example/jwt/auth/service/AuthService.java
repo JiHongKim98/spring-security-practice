@@ -1,10 +1,16 @@
 package com.example.jwt.auth.service;
 
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.jwt.auth.dto.response.LoginResponseDto;
+import com.example.jwt.auth.dto.response.MemberInfoResponseDto;
 import com.example.jwt.auth.entity.Member;
 import com.example.jwt.auth.entity.Role;
 import com.example.jwt.auth.repository.MemberRepository;
@@ -58,4 +64,21 @@ public class AuthService {
 
 		return LoginResponseDto.from(accessToken);
 	}
+
+	public MemberInfoResponseDto me() {
+		SecurityContext getContext = SecurityContextHolder.getContext();
+
+		String username = getContext
+			.getAuthentication()
+			.getName();
+		List<String> memberAuthorities = getContext
+			.getAuthentication()
+			.getAuthorities()
+			.stream()
+			.map(GrantedAuthority::getAuthority)
+			.toList();
+
+		return MemberInfoResponseDto.from(username, memberAuthorities);
+	}
+
 }
